@@ -1,0 +1,48 @@
+<script src="https://unpkg.com/html5-qrcode"></script>
+<style>
+.QRCode-content{
+    display: flex;
+    justify-content: space-between; 
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+@media (max-width: 540px){
+.QRCode-content{
+    justify-content: center;
+}
+}
+</style>  
+
+<div id="reader"> </div>
+<script type="text/javascript">
+  Html5Qrcode.getCameras().then(devices => {
+    if (devices && devices.length) {
+      var cameraId = devices[0].id;
+      const html5QrCode = new Html5Qrcode("reader");
+      const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+        //這裡做 掃到時的處理
+        html5QrCode.stop();//掃描到即終止, 否則會一直重複掃描callback
+      };
+      const config = {
+        fps: 25,
+        qrbox: {//掃描內層框大小設定
+          width: 200,
+          height: 200
+        },
+        aspectRatio:1.333,//比例大小4:3=>1.333 , 16:9=>1.7777778
+        formatsToSupport: [
+            Html5QrcodeSupportedFormats.QR_CODE,
+            Html5QrcodeSupportedFormats.CODE_39,  // 支援 Code 39
+            Html5QrcodeSupportedFormats.CODE_128 // 支援 Code 128
+            Html5QrcodeSupportedFormats.CODABAR // 支援 CODABAR
+        ],
+        rememberLastUsedCamera:true//只跟使用者要一次權限(safari本身安全機制要去手機系統設定)
+      };
+      html5QrCode.start({
+        facingMode: "environment"
+      }, config, qrCodeSuccessCallback);
+    }
+  }).catch(err => {
+    // handle err
+  });
+</script>
