@@ -1,1 +1,42 @@
+建置專案流程
 
+1.去 GitHub 建立新的專案
+詳細怎麼複製 能問AI處理 或 查文件
+
+// clone A專案
+git clone --bare https://github.com/你的帳號/A專案.git
+cd A專案.git
+// 上傳到 B專案
+git push --mirror https://github.com/你的帳號/B專案.git
+// 刪除資料夾
+cd ..
+rmdir /s /q A專案.git
+// clone B專案
+git clone https://github.com/你的帳號/B專案.git
+cd B專案
+
+2.去 ploi 中伺服器設定
+目前
+測試站 : 網站相關資料有說明
+正式站 : 網站相關資料有說明
+不要加錯了
+
+3.進去後 New site 輸入要架起來的路由網址
+
+4.建立完之後 選擇專屬的 GitHub 專案並連接
+統一設定一下(這個看公司的設定)
+測試站的分支為 : master
+正式站的分支為 : release
+
+5.進入 Cloudflare 新增DNS相關
+
+
+6.回到 ploi 在相同的IP 建立DB相關資料庫
+並把密碼複製聞到相關文件(網站相關資料)
+
+7.自動部屬相關的code能參考其他專案 .env 也是
+
+8.其餘使用CMD 進入到 ploi 系統建置專案的流程了
+CMD 連接指令
+ssh ploi@{IP}
+密碼: ploi相同密碼
