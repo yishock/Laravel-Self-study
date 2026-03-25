@@ -1,0 +1,22 @@
+本機連接到 ploi 環境資料庫的作法
+步驟
+1.新增 config 的設定檔案
+C:\Users\{使用者}\.ssh\config
+
+2.內容為
+Host ploi-db
+    HostName {ploi IP}
+    Port {ploi Port}
+    User ploi
+    LocalForward {自己額外開啟的 Port 我自行設定 3308 } 127.0.0.1:3306
+
+3.本機連接至 ploi
+ssh ploi-db
+
+4.並在專案的 .env 修改DB相關的設定
+DB_CONNECTION=mysql
+DB_HOST=host.docker.internal   # Windows
+DB_PORT=3308
+DB_DATABASE=你的DB
+DB_USERNAME=你的DB帳號
+DB_PASSWORD=你的DB密碼
