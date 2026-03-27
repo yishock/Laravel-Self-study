@@ -10,27 +10,51 @@ use Maatwebsite\Excel\Concerns\WithChunkReading;
 use PhpOffice\PhpSpreadsheet\IOFactory; // 非必要 這是為了 內部用：分批讀取 做安裝的套件
 
 // 內部用：單一工作表讀取
-class SingleSheetReader implements ToCollection, WithHeadingRow
+class SingleSheetReader implements ToCollection, WithMultipleSheets
 {
     public Collection $rows;
+    private string|int $sheet; // 可以是工作表名稱或索引（0開始）
 
-    public function __construct()
+    public function __construct(string|int $sheet = 0)
     {
-        $this->rows = collect();
+        $this->rows  = collect();
+        $this->sheet = $sheet;
+    }
+
+    // 告訴 Maatwebsite 只處理這一張
+    public function sheets(): array
+    {
+        return [$this->sheet => $this];
     }
 
     public function collection(Collection $rows)
     {
-        $this->rows = $rows;
+        $header = $rows->shift()->map(fn($v) => trim((string)$v))->toArray();
+
+        $this->rows = $rows
+            ->filter(fn($row) =>
+                collect($row)->filter(fn($v) => !is_null($v) && trim((string)$v) !== '')->isNotEmpty()
+            )
+            ->map(function ($row) use ($header) {
+                $mapped = [];
+                foreach ($header as $index => $key) {
+                    $mapped[$key] = $row[$index] ?? null;
+                }
+                return $mapped;
+            })
+            ->values();
     }
 }
 
 // 內部用：分批讀取
 // 目前是為規劃做使用 是請GPT處理檔案過大時的處理方案，但目前未需求(10萬筆以上再做考慮)
-class ChunkSheetReader implements ToCollection, WithHeadingRow, WithChunkReading
+class ChunkSheetReader implements ToCollection, WithChunkReading
 {
+    // 同樣移除 WithHeadingRow
     public Collection $rows;
     private int $chunkSize;
+    private bool $isFirstChunk = true;
+    private array $header      = [];
 
     public function __construct(int $chunkSize = 500)
     {
@@ -40,7 +64,27 @@ class ChunkSheetReader implements ToCollection, WithHeadingRow, WithChunkReading
 
     public function collection(Collection $rows)
     {
-        $this->rows = $this->rows->merge($rows);
+        // 第一個 chunk 的第一列是表頭
+        if ($this->isFirstChunk) {
+            $this->header       = $rows->shift()->map(fn($v) => trim((string)$v))->toArray();
+            $this->isFirstChunk = false;
+        }
+
+        $header   = $this->header;
+        $filtered = $rows
+            ->filter(function ($row) {
+                return collect($row)->filter(fn($v) => !is_null($v) && trim((string)$v) !== '')->isNotEmpty();
+            })
+            ->map(function ($row) use ($header) {
+                $mapped = [];
+                foreach ($header as $index => $key) {
+                    $mapped[$key] = $row[$index] ?? null;
+                }
+                return $mapped;
+            })
+            ->values();
+
+        $this->rows = $this->rows->merge($filtered);
     }
 
     public function chunkSize(): int
@@ -56,9 +100,9 @@ class ExcelReader
      * 單一工作表讀取
      * $file 可以是上傳的 UploadedFile 或本機路徑字串
      */
-    public static function read(mixed $file): Collection
+    public static function read(mixed $file, string|int $sheet = 0): Collection
     {
-        $reader = new SingleSheetReader();
+        $reader = new SingleSheetReader($sheet);
         Excel::import($reader, $file);
         return $reader->rows;
     }
