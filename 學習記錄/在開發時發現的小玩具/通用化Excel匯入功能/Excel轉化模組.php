@@ -4,7 +4,6 @@ namespace App\Imports;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\ToCollection;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use PhpOffice\PhpSpreadsheet\IOFactory; // 非必要 這是為了 內部用：分批讀取 做安裝的套件
@@ -47,19 +46,19 @@ class SingleSheetReader implements ToCollection, WithMultipleSheets
 }
 
 // 內部用：分批讀取
-// 目前是為規劃做使用 是請GPT處理檔案過大時的處理方案，但目前未需求(10萬筆以上再做考慮)
+// 目前是為規劃做使用，10萬筆以上再做考慮
+// callback 模式：每批處理完即釋放，不累積在記憶體
 class ChunkSheetReader implements ToCollection, WithChunkReading
 {
-    // 同樣移除 WithHeadingRow
-    public Collection $rows;
-    private int $chunkSize;
-    private bool $isFirstChunk = true;
-    private array $header      = [];
+    private int      $chunkSize;
+    private          $callback;
+    private bool     $isFirstChunk = true;
+    private array    $header       = [];
 
-    public function __construct(int $chunkSize = 500)
+    public function __construct(int $chunkSize = 500, callable $callback = null)
     {
-        $this->rows      = collect();
         $this->chunkSize = $chunkSize;
+        $this->callback  = $callback ?? fn($rows) => null;
     }
 
     public function collection(Collection $rows)
@@ -72,9 +71,9 @@ class ChunkSheetReader implements ToCollection, WithChunkReading
 
         $header   = $this->header;
         $filtered = $rows
-            ->filter(function ($row) {
-                return collect($row)->filter(fn($v) => !is_null($v) && trim((string)$v) !== '')->isNotEmpty();
-            })
+            ->filter(fn($row) =>
+                collect($row)->filter(fn($v) => !is_null($v) && trim((string)$v) !== '')->isNotEmpty()
+            )
             ->map(function ($row) use ($header) {
                 $mapped = [];
                 foreach ($header as $index => $key) {
@@ -84,7 +83,8 @@ class ChunkSheetReader implements ToCollection, WithChunkReading
             })
             ->values();
 
-        $this->rows = $this->rows->merge($filtered);
+        // 每批直接交給 callback 處理，處理完這批資料即可被 GC 回收
+        ($this->callback)($filtered);
     }
 
     public function chunkSize(): int
@@ -98,7 +98,8 @@ class ExcelReader
 {
     /**
      * 單一工作表讀取
-     * $file 可以是上傳的 UploadedFile 或本機路徑字串
+     * $file  可以是上傳的 UploadedFile 或本機路徑字串
+     * $sheet 可以是工作表名稱或索引（0 開始），預設讀第一張
      */
     public static function read(mixed $file, string|int $sheet = 0): Collection
     {
@@ -117,15 +118,14 @@ class ExcelReader
      */
     public static function readSheets(mixed $file, array $sheetNames): array
     {
-
         if (empty($sheetNames)) {
             return [];
         }
-        
-        $readers = [];
 
+        $readers = [];
         foreach ($sheetNames as $name) {
-            $readers[$name] = new SingleSheetReader();
+            // 修正：傳入 $name 讓每個 reader 明確對應自己的工作表
+            $readers[$name] = new SingleSheetReader($name);
         }
 
         $import = new class($readers) implements WithMultipleSheets {
@@ -155,23 +155,41 @@ class ExcelReader
 
     /**
      * 大量資料分批讀取（單一工作表）
-     * 目前是為規劃做使用 是請GPT處理檔案過大時的處理方案，但目前未需求(10萬筆以上再做考慮)
+     * 目前是為規劃做使用，10萬筆以上再做考慮
+     *
+     * 改為 callback 模式，每批處理完即釋放記憶體，不累積
+     * 
+     * ※ 注意：此方法不回傳資料，需透過 callback 處理每批
+     * 
+     * 用法：
+     *   ExcelReader::readChunk($file, function ($rows) {
+     *       foreach ($rows as $row) { ... }
+     *   });
      */
-    public static function readChunk(mixed $file, int $chunkSize = 500): Collection
+    public static function readChunk(mixed $file, callable $callback, int $chunkSize = 500): void
     {
-        $reader = new ChunkSheetReader($chunkSize);
+        $reader = new ChunkSheetReader($chunkSize, $callback);
         Excel::import($reader, $file);
-        return $reader->rows;
     }
 
     /**
      * 取得所有工作表名稱
+     * 改用 setReadDataOnly + setLoadSheetsOnly 只讀 metadata
+     * 避免 IOFactory::load() 載入全部儲存格內容造成記憶體浪費
      */
     public static function getSheetNames(mixed $file): array
     {
-        $path        = is_string($file) ? $file : $file->getRealPath();
-        $spreadsheet = IOFactory::load($path);
-        return $spreadsheet->getSheetNames();
+        $path   = is_string($file) ? $file : $file->getRealPath();
+        $reader = IOFactory::createReaderForFile($path);
+        $reader->setReadDataOnly(true);
+        $spreadsheet = $reader->load($path);
+        $names       = $spreadsheet->getSheetNames();
+
+        // 明確釋放 spreadsheet 物件，避免佔用記憶體
+        $spreadsheet->disconnectWorksheets();
+        unset($spreadsheet);
+
+        return $names;
     }
 
     /**
