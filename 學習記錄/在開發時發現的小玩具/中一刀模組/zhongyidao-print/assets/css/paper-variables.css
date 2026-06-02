@@ -1,0 +1,27 @@
+/**
+ * 中一刀 — 紙張與列印範圍（對齊 Windows 自訂紙「中一刀」21.59×13.97 cm）
+ * 洞區不計入寬度，以 --pad-left / --pad-right 在頁內留白。
+ */
+:root {
+    --paper-w: 215.9mm;
+    --paper-h: 139.7mm;
+
+    --form-w: 196mm;
+    --form-h: 140mm;
+
+    --pad-top: 5mm;
+    --pad-bottom: 15mm;
+    --pad-left: 10mm;
+    --pad-right: 10mm;
+    --copy-gutter: 8mm;
+
+    --print-offset-x: 0mm;
+    --print-offset-y: 0mm;
+}
+
+@media print {
+    @page {
+        size: var(--paper-w) var(--paper-h);
+        margin: 0;
+    }
+}

@@ -1,0 +1,98 @@
+<!--
+  版型 B：產品出貨單 — 單頁骨架
+  佔位符：{{name}} ；迴圈區塊由後端重複渲染 item-row
+  CSS：../../assets/css/paper-variables.css + type-b-shipment.css
+-->
+<div class="sheet-page">
+    <div class="sheet-body">
+        <div class="hdr-top">
+            <div class="hdr-titles">
+                <div class="hdr-company">{{company_name}}</div>
+                <div class="hdr-doc-subtitle">{{doc_title}}</div>
+            </div>
+            <div class="hdr-banner-contact">
+                <span class="addr-line">地址：{{company_address}}</span>
+                電話：{{company_phone}}<br>
+                傳真：{{company_fax}}
+            </div>
+        </div>
+
+        <!-- 多頁時顯示 -->
+        <!-- {{#if page_total_gt_1}}
+        <table class="hdr-meta hdr-meta--page">
+            <tr><td colspan="12" class="page-no">{{page_number}}/{{page_total}}</td></tr>
+        </table>
+        {{/if}} -->
+
+        <div class="form-main">
+            <div class="mark-side">{{shipping_mark_text}}</div>
+            <div class="form-stack">
+                <table class="date-strip">
+                    <colgroup>
+                        <col class="xg-b" /><col class="xg-c" /><col class="xg-d" /><col class="xg-e" />
+                        <col class="xg-f" /><col class="xg-g" /><col class="xg-h" /><col class="xg-i" />
+                        <col class="xg-j" /><col class="xg-k" /><col class="xg-l" /><col class="xg-m" />
+                    </colgroup>
+                    <tr class="row-date">
+                        <td class="label" colspan="2">填單日期：</td>
+                        <td class="text-left" colspan="6">{{form_date}}</td>
+                        <td colspan="1"></td>
+                        <td class="text-center" colspan="1"><div class="hdr-shipper">發貨人</div></td>
+                        <td colspan="2"></td>
+                    </tr>
+                </table>
+                <table class="form-grid">
+                    <colgroup>
+                        <col class="xg-b" /><col class="xg-c" /><col class="xg-d" /><col class="xg-e" />
+                        <col class="xg-f" /><col class="xg-g" /><col class="xg-h" /><col class="xg-i" />
+                        <col class="xg-j" /><col class="xg-k" /><col class="xg-l" /><col class="xg-m" />
+                    </colgroup>
+                    <tr class="info-row">
+                        <td class="label" colspan="1">客戶：</td>
+                        <td class="text-left" colspan="3">{{customer_name}}</td>
+                        <td class="label" colspan="2">出貨日期</td>
+                        <td class="text-center" colspan="2">{{delivery_date}}</td>
+                        <td class="label" colspan="2">出貨(PO)編號</td>
+                        <td class="text-left" colspan="2">{{order_no}}</td>
+                    </tr>
+                    <tr class="head-row">
+                        <td colspan="1">項次</td>
+                        <td colspan="2">批號</td>
+                        <td colspan="5">產品名稱,規格/等級</td>
+                        <td colspan="1">數量</td>
+                        <td colspan="1">單位</td>
+                        <td colspan="1">單價</td>
+                        <td colspan="1">金額</td>
+                    </tr>
+                    <!-- REPEAT: item-row (固定 8 列，見 ShipmentPrintLines::ROWS_PER_PAGE) -->
+                    <tr class="item-row">
+                        <td class="text-center" colspan="1">{{item_seq}}</td>
+                        <td class="text-center" colspan="2">{{item_batch}}</td>
+                        <td class="text-left item-product" colspan="5">{{item_name_part}}</td>
+                        <td class="text-right" colspan="1">{{item_qty}}</td>
+                        <td class="text-center" colspan="1">{{item_unit}}</td>
+                        <td class="text-right" colspan="1">{{item_unit_price}}</td>
+                        <td class="text-right" colspan="1">{{item_amount}}</td>
+                    </tr>
+                    <!-- END REPEAT -->
+                    <tr class="foot-row">
+                        <td class="label" colspan="3">業務</td>
+                        <td class="text-left" colspan="5">{{sales_name}}</td>
+                        <td class="label text-center" colspan="3">合計</td>
+                        <td class="text-right" colspan="1">{{subtotal}}</td>
+                    </tr>
+                    <tr class="remark-row">
+                        <td class="label" colspan="3">備註</td>
+                        <td class="text-left" colspan="9">{{remark}}</td>
+                    </tr>
+                </table>
+                <div class="sign-line">
+                    <div class="sign-seg text-left">廠長：</div>
+                    <div class="sign-seg text-left">倉管：</div>
+                    <div class="sign-seg text-left">簽收：</div>
+                </div>
+            </div>
+            <div class="copy-side">{{copy_side_text}}</div>
+        </div>
+    </div>
+</div>

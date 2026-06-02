@@ -1,0 +1,27 @@
+{
+  "company_name": "範例有限公司",
+  "company_address": "台北市範例路 1 號",
+  "company_phone": "02-12345678",
+  "company_fax": "02-87654321",
+  "doc_title": "產品出貨單",
+  "form_date": "2026年6月2日",
+  "customer_name": "範例客戶",
+  "delivery_date": "6月5日",
+  "order_no": "SO-20260602-001",
+  "sales_name": "王小明",
+  "remark": "範例備註",
+  "shipping_mark_text": "外銷　內銷",
+  "copy_side_text": "第一聯：存根　第二聯：會計　第三聯：倉庫　第四聯：客戶",
+  "shipping_fee": 0,
+  "items": [
+    {
+      "seq": 1,
+      "batch": "B001",
+      "name": "範例產品 A，特級",
+      "qty": 10,
+      "unit": "箱",
+      "unit_price": 100,
+      "amount": 1000
+    }
+  ]
+}

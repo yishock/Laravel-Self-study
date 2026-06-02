@@ -1,0 +1,413 @@
+﻿/* 版型 B：產品出貨單（shipment-order）
+ * 依印表機列印範圍 215.9×139.7mm；洞區以 pad 留白，不加大頁寬。
+ * 需搭配 paper-variables.css 或自行定義 --paper-w / --paper-h
+ */
+        :root {
+            --paper-w: 215.9mm;
+            --paper-h: 139.7mm;
+            --print-offset-x: 0mm;
+            --print-offset-y: 0mm;
+            --pad-top: 5mm;
+            --pad-bottom: 15mm;
+            /* 規格目標 3cm；以下為依實印尺量校正後的 CSS 值 */
+            --side-zone-target: 30mm;
+            --pad-left: 10mm;
+            --pad-right: 10mm;
+
+            --hdr-meta-2-h: 7mm;
+            --hdr-page-no-h: 4mm;
+
+            --date-row-h: 6.8mm;
+            --info-row-h: 7mm;
+            --head-row-h: 7mm;
+            --item-row-h: 8mm;
+            --foot-row-h: 7mm;
+            --remark-row-h: 9mm;
+            --sign-row-h: 7mm;
+            --sign-gap: 1.5mm;
+            --copy-gutter: 8mm;
+
+            /* B～M 各欄寬比例（對應 xlsx 欄寬加權換算，加總 100%） */
+            --xg-pct-b: 8%;
+            --xg-pct-c: 8%;
+            --xg-pct-d: 8%;
+            --xg-pct-e: 6%;
+            --xg-pct-f: 6%;
+            --xg-pct-g: 6%;
+            --xg-pct-h: 6%;
+            --xg-pct-i: 11%;
+            --xg-pct-j: 7%;
+            --xg-pct-k: 7%;
+            --xg-pct-l: 13%;
+            --xg-pct-m: 14%;
+
+            --font-banner-contact: 11px;
+            --hdr-contact-max-w: 32%;
+            --hdr-contact-inset-right: 8mm;
+            --font-date-strip: 14px;
+            --font-form-meta: 15px;
+            --font-sign: 13px;
+            --font-copy-side: 12px;
+            --font-detail: 14px;
+            --border: 1px solid #000;
+            --border-outer: 2px solid #000;
+        }
+
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", "微軟正黑體", "Microsoft YaHei", sans-serif;
+            font-weight: bold;
+            color: #000;
+            background: #e0e0e0;
+        }
+
+        .sheet-page {
+            width: var(--paper-w);
+            min-height: var(--paper-h);
+            height: var(--paper-h);
+            padding: var(--pad-top) var(--pad-right) var(--pad-bottom) var(--pad-left);
+            page-break-after: always;
+            position: relative;
+            background: #fff;
+            margin: 0 auto 8px;
+            overflow: hidden;
+        }
+
+        .sheet-page:last-child {
+            page-break-after: auto;
+        }
+
+        @media print {
+            @page {
+                size: 215.9mm 139.7mm;
+                margin: 0;
+            }
+
+            html,
+            body {
+                width: var(--paper-w);
+                height: var(--paper-h);
+                margin: 0;
+                padding: 0;
+                background: #fff;
+            }
+
+            body {
+                display: block;
+            }
+
+            .sheet-page {
+                margin: 0;
+                page-break-after: always;
+                transform: translate(var(--print-offset-x), var(--print-offset-y));
+                overflow: visible;
+            }
+
+            .sheet-page:last-child {
+                page-break-after: auto;
+            }
+
+            .form-main {
+                display: flex;
+            }
+        }
+
+        .sheet-body {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        /* 四聯：與備份版相同，form-main 橫向 flex，緊貼表單右側 */
+        .form-main {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            width: 100%;
+        }
+
+        .form-stack {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .form-stack .form-grid,
+        .form-stack .sign-line {
+            width: 100%;
+        }
+
+        .mark-side,
+        .copy-side {
+            flex: 0 0 var(--copy-gutter);
+            width: var(--copy-gutter);
+            position: static;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2mm 0;
+            font-size: var(--font-copy-side);
+            font-weight: normal;
+            color: #000;
+            writing-mode: vertical-rl;
+            text-orientation: upright;
+            line-height: 1.45;
+            letter-spacing: 0;
+            white-space: nowrap;
+        }
+
+        .hdr-top {
+            display: grid;
+            grid-template-columns: 1fr;
+            width: 100%;
+            margin-bottom: 1.5mm;
+        }
+
+        /* 大標／小標：相對整張可印區水平置中（不受右側聯絡欄影響） */
+        .hdr-titles {
+            grid-column: 1;
+            grid-row: 1;
+            width: 100%;
+            text-align: center;
+            justify-self: center;
+            z-index: 0;
+        }
+
+        .hdr-banner-contact {
+            grid-column: 1;
+            grid-row: 1;
+            justify-self: end;
+            align-self: start;
+            width: max-content;
+            max-width: var(--hdr-contact-max-w);
+            margin-right: var(--hdr-contact-inset-right);
+            text-align: left;
+            font-size: var(--font-banner-contact);
+            font-weight: normal;
+            line-height: 1.5;
+            padding-left: 1mm;
+            padding-right: 0;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+            z-index: 1;
+        }
+
+        .hdr-banner-contact .addr-line {
+            display: block;
+        }
+
+        .hdr-meta {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            margin-bottom: 1mm;
+        }
+
+        .hdr-meta--page td {
+            height: var(--hdr-page-no-h);
+            font-size: 12px;
+            vertical-align: middle;
+        }
+
+        .hdr-company {
+            text-align: center;
+            font-size: 22px;
+            letter-spacing: 3px;
+            line-height: 1.2;
+        }
+
+        .hdr-doc-subtitle {
+            text-align: center;
+            font-size: 17px;
+            letter-spacing: 5px;
+            line-height: 1.35;
+            margin-top: 1.5mm;
+        }
+
+        .hdr-shipper {
+            display: inline-block;
+            text-align: center;
+            min-width: 18mm;
+            padding: 0 2mm;
+            font-size: var(--font-date-strip);
+            border: none;
+            background: transparent;
+        }
+
+        /* 填單日期＋發貨人：獨立表、無外框（與 xlsx 列 3 相同，不在主表框內） */
+        table.date-strip {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            border: none;
+            margin-bottom: 1mm;
+        }
+
+        .date-strip td {
+            border: none;
+            padding: 0 1mm;
+            vertical-align: middle;
+            font-size: var(--font-date-strip);
+        }
+
+        .date-strip .label {
+            text-align: center;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+
+        .date-strip .row-date td {
+            height: var(--date-row-h);
+            padding-top: 0.5mm;
+            padding-bottom: 0.5mm;
+        }
+
+        .date-strip col.xg-b { width: var(--xg-pct-b); }
+        .date-strip col.xg-c { width: var(--xg-pct-c); }
+        .date-strip col.xg-d { width: var(--xg-pct-d); }
+        .date-strip col.xg-e { width: var(--xg-pct-e); }
+        .date-strip col.xg-f { width: var(--xg-pct-f); }
+        .date-strip col.xg-g { width: var(--xg-pct-g); }
+        .date-strip col.xg-h { width: var(--xg-pct-h); }
+        .date-strip col.xg-i { width: var(--xg-pct-i); }
+        .date-strip col.xg-j { width: var(--xg-pct-j); }
+        .date-strip col.xg-k { width: var(--xg-pct-k); }
+        .date-strip col.xg-l { width: var(--xg-pct-l); }
+        .date-strip col.xg-m { width: var(--xg-pct-m); }
+
+        /* 有框主表：頂與左右外框；底邊改由備註列（粗線）收束，簽章列另表不接續左右粗框 */
+        table.form-grid {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            border-top: var(--border-outer);
+            border-left: var(--border-outer);
+            border-right: var(--border-outer);
+            border-bottom: none;
+        }
+
+        .form-grid col.xg-b { width: var(--xg-pct-b); }
+        .form-grid col.xg-c { width: var(--xg-pct-c); }
+        .form-grid col.xg-d { width: var(--xg-pct-d); }
+        .form-grid col.xg-e { width: var(--xg-pct-e); }
+        .form-grid col.xg-f { width: var(--xg-pct-f); }
+        .form-grid col.xg-g { width: var(--xg-pct-g); }
+        .form-grid col.xg-h { width: var(--xg-pct-h); }
+        .form-grid col.xg-i { width: var(--xg-pct-i); }
+        .form-grid col.xg-j { width: var(--xg-pct-j); }
+        .form-grid col.xg-k { width: var(--xg-pct-k); }
+        .form-grid col.xg-l { width: var(--xg-pct-l); }
+        .form-grid col.xg-m { width: var(--xg-pct-m); }
+
+        .form-grid td {
+            border: var(--border);
+            padding: 0 1mm;
+            vertical-align: middle;
+            overflow: hidden;
+        }
+
+        .form-grid .label {
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .info-row td {
+            height: var(--info-row-h);
+            font-size: var(--font-form-meta);
+        }
+
+        .head-row td {
+            height: var(--head-row-h);
+            text-align: center;
+            font-size: var(--font-detail);
+        }
+
+        .item-row td {
+            height: var(--item-row-h);
+            font-size: var(--font-detail);
+        }
+
+        .item-row .item-product {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: clip;
+        }
+
+        .foot-row td {
+            height: var(--foot-row-h);
+            font-size: var(--font-form-meta);
+        }
+
+        .remark-row td {
+            height: var(--remark-row-h);
+            vertical-align: top;
+            padding-top: 0.5mm;
+            font-size: var(--font-form-meta);
+            /* 原主表最底粗框，改畫在備註列下緣 */
+            border-bottom: var(--border-outer);
+        }
+
+        /* 簽章列：不用 table，避免列印／檢視出現淡格線；寬度比照原 colspan 4+4+4（三等分） */
+        .sign-line {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-end;
+            width: 100%;
+            min-height: var(--sign-row-h);
+            margin: 0;
+            padding: 0;
+            border: none;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .sign-line .sign-seg {
+            flex: 1 1 0;
+            min-width: 0;
+            text-align: left;
+            font-size: var(--font-sign);
+            line-height: 1.2;
+            padding: 0 2mm 1mm;
+            border: none;
+            outline: none;
+            box-shadow: none;
+        }
+
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+
+        .page-no {
+            font-size: 10px;
+            font-weight: normal;
+            text-align: right;
+        }
+
+        .print-notice {
+            max-width: var(--paper-w);
+            margin: 0 auto 8px;
+            padding: 10px 12px;
+            font-size: 13px;
+            font-weight: normal;
+            line-height: 1.5;
+            color: #92400e;
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            border-radius: 4px;
+        }
+
+        @media print {
+            .print-notice {
+                display: none !important;
+            }
+        }

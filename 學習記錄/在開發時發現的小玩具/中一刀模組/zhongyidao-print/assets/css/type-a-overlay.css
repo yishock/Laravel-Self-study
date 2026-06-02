@@ -1,0 +1,88 @@
+/**
+ * 版型 A：套印／全印單據（銷貨、進貨、採購、庫存等）
+ * 表單框 196×140mm，可選外層對齊 --paper-w（全頁置中時另包一層）。
+ */
+@media print {
+    @page {
+        size: var(--form-w, 196mm) var(--form-h, 140mm);
+        margin: 0;
+    }
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-weight: bold;
+}
+
+html {
+    font-size: 14px;
+}
+
+body {
+    width: 100%;
+    font-family: "Microsoft JhengHei", "微軟正黑體", "Microsoft YaHei", sans-serif;
+}
+
+.wrap {
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    max-width: var(--form-w, 196mm);
+    max-height: var(--form-h, 140mm);
+    page-break-after: always;
+}
+
+.wrap:last-child {
+    page-break-after: auto;
+}
+
+.container {
+    width: var(--form-w, 196mm);
+    height: var(--form-h, 140mm);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+table * {
+    padding-right: 0.2rem;
+    vertical-align: middle;
+}
+
+tr {
+    height: 20px;
+}
+
+.form-body {
+    height: 19px;
+}
+
+.company-name {
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+.table-name {
+    text-align: center;
+    font-size: 1.25rem;
+}
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+
+.zh {
+    font-family: "標楷體", "Microsoft JhengHei", "微軟正黑體", sans-serif;
+}
+
+.page-break {
+    page-break-before: always;
+}
