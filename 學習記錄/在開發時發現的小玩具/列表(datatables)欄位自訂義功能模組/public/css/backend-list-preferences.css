@@ -1,0 +1,124 @@
+.dt-col-resize-handle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 14px;
+    height: 100%;
+    cursor: col-resize;
+    user-select: none;
+    z-index: 10;
+    touch-action: none;
+}
+
+.dt-col-resize-handle:hover {
+    background: rgba(31, 111, 255, 0.15);
+}
+
+table.dataTable thead th.dt-col-resizable,
+table thead th.dt-col-resizable {
+    position: relative;
+}
+
+body.dt-col-resizing {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
+
+body.dt-col-resizing table.dataTable thead th {
+    cursor: col-resize !important;
+}
+
+.list-prefs-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.list-prefs-toolbar .btn-link {
+    font-size: 0.875rem;
+    padding: 0;
+}
+
+.list-prefs-storage-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 0.8125rem;
+    color: #6c757d;
+    user-select: none;
+    cursor: pointer;
+}
+
+.list-prefs-storage-label {
+    line-height: 1.2;
+}
+
+.list-prefs-storage-label.is-active {
+    color: #1f6fff;
+    font-weight: 600;
+}
+
+.list-prefs-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.list-prefs-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.list-prefs-switch-slider {
+    position: absolute;
+    inset: 0;
+    background-color: #adb5bd;
+    border-radius: 22px;
+    transition: background-color 0.2s ease;
+}
+
+.list-prefs-switch-slider::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    bottom: 2px;
+    width: 18px;
+    height: 18px;
+    background-color: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+}
+
+.list-prefs-switch input:checked + .list-prefs-switch-slider {
+    background-color: #1f6fff;
+}
+
+.list-prefs-switch input:checked + .list-prefs-switch-slider::before {
+    transform: translateX(18px);
+}
+
+.list-prefs-switch input:focus-visible + .list-prefs-switch-slider {
+    outline: 2px solid rgba(31, 111, 255, 0.35);
+    outline-offset: 2px;
+}
+
+.form-col-draggable {
+    cursor: grab;
+}
+
+.form-col-draggable.form-col-dragging {
+    opacity: 0.55;
+    cursor: grabbing;
+}
+
+th.form-col-drop-target {
+    box-shadow: inset 0 -3px 0 #1f6fff;
+}

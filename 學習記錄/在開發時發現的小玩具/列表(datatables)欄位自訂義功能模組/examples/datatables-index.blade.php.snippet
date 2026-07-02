@@ -1,0 +1,47 @@
+{{-- 列表頁整合範例：複製 customer/index.blade.php 的寫法即可 --}}
+
+@push('style')
+<link rel="stylesheet" href="{{ asset('css/backend-list-preferences.css') }}">
+@endpush
+
+<div class="list-prefs-toolbar">
+    <label class="list-prefs-storage-toggle" title="切換欄位設定儲存方式">
+        <span class="list-prefs-storage-label" data-storage-mode="local">本機暫存</span>
+        <span class="list-prefs-switch">
+            <input type="checkbox" id="list-prefs-storage-mode" aria-label="切換本機暫存或帳號同步">
+            <span class="list-prefs-switch-slider"></span>
+        </span>
+        <span class="list-prefs-storage-label" data-storage-mode="server">帳號同步</span>
+    </label>
+    <button type="button" class="btn btn-link text-muted" id="btn-reset-list-prefs">恢復列表預設配置</button>
+</div>
+
+@push('scripts')
+<script src="{{ asset('js/backend-list-preferences-storage.js') }}"></script>
+<script src="{{ asset('js/backend-list-preferences.js') }}"></script>
+<script>
+(async function () {
+    var listPrefsApiUrl = '{{ url('/backend/list-preferences') }}';
+    var pageKey = 'customer.index'; // ← 每頁唯一，依模組自訂
+
+  var columnDefs = [ /* 各頁自己的欄位定義，建議每欄設 name */ ];
+
+    var table = await BackendListPreferences.init({
+        pageKey: pageKey,
+        apiBaseUrl: listPrefsApiUrl,
+        showStorageToggle: true,
+        storageToggleSelector: '#list-prefs-storage-mode',
+        tableElement: $('#data-table'),
+        columnDefs: columnDefs,
+        showResetButton: true,
+        resetButtonSelector: '#btn-reset-list-prefs',
+        dataTableOptions: {
+            autoWidth: false,
+            colReorder: true,
+            stateSave: false,  // 必須 false
+            // ajax、order、pageLength 等其餘 DataTables 設定…
+        },
+    });
+})();
+</script>
+@endpush

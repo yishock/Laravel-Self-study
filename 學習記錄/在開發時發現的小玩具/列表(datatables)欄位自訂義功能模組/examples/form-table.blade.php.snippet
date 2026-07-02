@@ -1,0 +1,40 @@
+{{-- 表單明細表格範例：複製 quote_orders/form.blade.php 品項區塊的寫法 --}}
+
+@push('style')
+<link rel="stylesheet" href="{{ asset('css/backend-list-preferences.css') }}">
+@endpush
+
+<div class="list-prefs-toolbar">
+    <label class="list-prefs-storage-toggle" title="切換欄位設定儲存方式">
+        <span class="list-prefs-storage-label" data-storage-mode="local">本機暫存</span>
+        <span class="list-prefs-switch">
+            <input type="checkbox" id="list-prefs-storage-mode" aria-label="切換本機暫存或帳號同步">
+            <span class="list-prefs-switch-slider"></span>
+        </span>
+        <span class="list-prefs-storage-label" data-storage-mode="server">帳號同步</span>
+    </label>
+    <button type="button" class="btn btn-link text-muted" id="btn-reset-form-items-prefs">恢復明細預設配置</button>
+</div>
+
+@push('scripts')
+<script src="{{ asset('js/backend-list-preferences-storage.js') }}"></script>
+<script src="{{ asset('js/backend-form-table-preferences.js') }}"></script>
+<script>
+(async function () {
+    var ctx = await BackendFormTablePreferences.init({
+        tableElement: '#quote-order-items-table',
+        tbodySelector: '#product_area',
+        templateRowSelector: '#product_template',
+        pageKey: 'sales.quote_order.form.items', // ← 每頁唯一
+        apiBaseUrl: '{{ url('/backend/list-preferences') }}',
+        showStorageToggle: true,
+        storageToggleSelector: '#list-prefs-storage-mode',
+        resetButtonSelector: '#btn-reset-form-items-prefs',
+        theadKeys: [/* thead 每欄 key */],
+        tbodyKeys: [/* tbody 每欄 key */],
+        adjustableVisibleKeys: [/* 可拖曳／調寬的欄 */],
+    });
+    // 動態新增列後：ctx.refreshBodyRows();
+})();
+</script>
+@endpush
